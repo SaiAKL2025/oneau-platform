@@ -24,9 +24,26 @@ const connectDB = async (): Promise<void> => {
     
     // Ensure proper connection string format
     if (finalURI.includes('mongodb+srv://')) {
-      // Add additional connection parameters for better reliability
+      // Only add parameters if they don't already exist
       const separator = finalURI.includes('?') ? '&' : '?';
-      finalURI = finalURI + `${separator}retryWrites=true&w=majority&authSource=admin&ssl=true`;
+      let additionalParams = '';
+      
+      if (!finalURI.includes('retryWrites=')) {
+        additionalParams += 'retryWrites=true';
+      }
+      if (!finalURI.includes('w=')) {
+        additionalParams += additionalParams ? '&w=majority' : 'w=majority';
+      }
+      if (!finalURI.includes('authSource=')) {
+        additionalParams += additionalParams ? '&authSource=admin' : 'authSource=admin';
+      }
+      if (!finalURI.includes('ssl=')) {
+        additionalParams += additionalParams ? '&ssl=true' : 'ssl=true';
+      }
+      
+      if (additionalParams) {
+        finalURI = finalURI + separator + additionalParams;
+      }
     }
 
     // Configure mongoose options for better connection handling
