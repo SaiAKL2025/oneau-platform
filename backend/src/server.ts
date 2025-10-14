@@ -88,27 +88,35 @@ app.use(morgan('combined', {
   }
 }));
 
-// CORS configuration
+// CORS configuration - more flexible for development and production
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     console.log('🔍 CORS request from origin:', origin);
     
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl requests, or server-to-server)
     if (!origin) {
       console.log('✅ CORS: Allowing request with no origin');
       return callback(null, true);
     }
     
+    // Allow all Vercel domains (for development and production)
+    if (origin.includes('vercel.app') || origin.includes('localhost')) {
+      console.log('✅ CORS: Allowing Vercel/localhost origin:', origin);
+      return callback(null, true);
+    }
+    
+    // Specific allowed origins for production
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:4173',
       'https://oneau-platform.vercel.app',
-      'https://oneau-platform-git-main.vercel.app'
+      'https://oneau-platform-git-main.vercel.app',
+      // Add your frontend domain here when you know it
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('✅ CORS: Allowing origin:', origin);
+      console.log('✅ CORS: Allowing specific origin:', origin);
       callback(null, true);
     } else {
       console.log('🚫 CORS blocked origin:', origin);
