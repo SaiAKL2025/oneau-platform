@@ -1,5 +1,6 @@
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
 
 // Define log levels
 const levels = {
@@ -40,7 +41,7 @@ const disableFileLogging = process.env.DISABLE_FILE_LOGGING === 'true' ||
                           process.env.VERCEL === '1';
 
 // Define transports
-const transports = [
+const transports: winston.transport[] = [
   // Console transport for development
   new winston.transports.Console({
     format,
@@ -93,7 +94,6 @@ const logger = winston.createLogger({
 
 // Only create logs directory if file logging is enabled
 if (!disableFileLogging) {
-  import fs from 'fs';
   const logsDir = path.join(__dirname, '../../logs');
   if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
