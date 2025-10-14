@@ -254,6 +254,7 @@ app.use('/api/notifications', notificationRoutes);
 
 // Public routes without /api prefix (for frontend compatibility)
 app.use('/organizations', organizationRoutes);
+app.use('/events', eventRoutes); // For /events
 app.use('/public', publicRoutes); // For /public/organizations/popular
 
 // Static files for uploads with CORS headers
