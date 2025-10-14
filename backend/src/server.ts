@@ -10,7 +10,7 @@ import connectDB from './config/database';
 import { requestLogger, performanceLogger } from './utils/logger';
 import { errorHandler, notFoundHandler, timeoutMiddleware } from './middleware/errorHandler';
 import { sanitizeInput } from './middleware/validation';
-import { multerErrorHandler } from './config/upload';
+import { handleUploadError } from './config/upload';
 import passport from './config/passport';
 
 // Import routes
@@ -192,7 +192,7 @@ app.use('/uploads', cors({
 }), express.static('uploads'));
 
 // Error handling middleware
-app.use(multerErrorHandler);
+app.use(handleUploadError);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
