@@ -34,6 +34,11 @@ const format = winston.format.combine(
 // Define which logs to show based on environment
 const showLogs = process.env.NODE_ENV === 'development' ? ['error', 'warn', 'info', 'http', 'debug'] : ['error', 'warn', 'info'];
 
+// Check if file logging should be disabled (for serverless environments)
+const disableFileLogging = process.env.DISABLE_FILE_LOGGING === 'true' || 
+                          process.env.NODE_ENV === 'production' || 
+                          process.env.VERCEL === '1';
+
 // Define transports
 const transports = [
   // Console transport for development
@@ -41,37 +46,42 @@ const transports = [
     format,
     level: process.env.LOG_LEVEL || 'debug',
   }),
-
-  // Error log file
-  new winston.transports.File({
-    filename: path.join(__dirname, '../../logs/error.log'),
-    level: 'error',
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.errors({ stack: true }),
-      winston.format.json()
-    ),
-  }),
-
-  // Combined log file
-  new winston.transports.File({
-    filename: path.join(__dirname, '../../logs/combined.log'),
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    ),
-  }),
-
-  // HTTP requests log file
-  new winston.transports.File({
-    filename: path.join(__dirname, '../../logs/http.log'),
-    level: 'http',
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    ),
-  }),
 ];
+
+// Only add file transports if file logging is not disabled
+if (!disableFileLogging) {
+  transports.push(
+    // Error log file
+    new winston.transports.File({
+      filename: path.join(__dirname, '../../logs/error.log'),
+      level: 'error',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+    }),
+
+    // Combined log file
+    new winston.transports.File({
+      filename: path.join(__dirname, '../../logs/combined.log'),
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      ),
+    }),
+
+    // HTTP requests log file
+    new winston.transports.File({
+      filename: path.join(__dirname, '../../logs/http.log'),
+      level: 'http',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      ),
+    }),
+  );
+}
 
 // Create the logger
 const logger = winston.createLogger({
@@ -81,11 +91,13 @@ const logger = winston.createLogger({
   transports,
 });
 
-// Create logs directory if it doesn't exist
-import fs from 'fs';
-const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+// Only create logs directory if file logging is enabled
+if (!disableFileLogging) {
+  import fs from 'fs';
+  const logsDir = path.join(__dirname, '../../logs');
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
 }
 
 // Export logger methods
