@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
-import { uploadSingle, uploadMultiple, uploadOrgVerification, getFileInfo, deleteFile, multerErrorHandler } from '../config/upload';
+import upload, { handleUploadError } from '../config/upload';
 import { cloudinaryUpload, cloudinaryUploadMultiple, cloudinaryUploadOrgVerification, getCloudinaryFileInfo, deleteCloudinaryFile } from '../config/cloudinary';
 import path from 'path';
 import fs from 'fs';
@@ -9,7 +9,7 @@ import fs from 'fs';
 const router = express.Router();
 
 // Apply multer error handler to all routes
-router.use(multerErrorHandler);
+router.use(handleUploadError);
 
 // Upload single file to Cloudinary
 router.post('/single', authenticateToken as any, cloudinaryUpload.single('file'), async (req: any, res: Response) => {
@@ -177,7 +177,10 @@ router.delete('/:filename', authenticateToken as any, async (req: any, res: Resp
       });
     }
 
-    await deleteFile(filePath);
+    // Delete file from filesystem if it exists
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
     res.json({
       success: true,

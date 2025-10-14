@@ -5,7 +5,7 @@ import fs from 'fs';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import Event from '../models/Event';
 import User from '../models/User';
-import { getFileInfo } from '../config/upload';
+import upload, { handleUploadError } from '../config/upload';
 import { cloudinaryUpload, cloudinaryUploadMultiple, getCloudinaryFileInfo } from '../config/cloudinary';
 import { ActivityService } from '../services/activityService';
 import { FirebaseNotificationService } from '../services/firebaseNotificationService';

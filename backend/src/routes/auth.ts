@@ -5,7 +5,7 @@ import Student from '../models/Student';
 import Organization from '../models/Organization';
 import PendingApproval from '../models/PendingApproval';
 import { generateToken } from '../middleware/auth';
-import { uploadSingle, getFileInfo, upload } from '../config/upload';
+import upload, { handleUploadError } from '../config/upload';
 import { cloudinaryUpload, getCloudinaryFileInfo } from '../config/cloudinary';
 import multer from 'multer';
 import passport from '../config/passport';

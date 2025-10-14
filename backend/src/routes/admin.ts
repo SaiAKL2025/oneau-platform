@@ -4,7 +4,7 @@ import PendingApproval from '../models/PendingApproval';
 import Organization from '../models/Organization';
 import User from '../models/User';
 import { generateToken } from '../middleware/auth';
-import { uploadSingle, getFileInfo, upload } from '../config/upload';
+import upload, { handleUploadError } from '../config/upload';
 import { cloudinaryUpload, getCloudinaryFileInfo } from '../config/cloudinary';
 import { ActivityService } from '../services/activityService';
 import { FirebaseNotificationService } from '../services/firebaseNotificationService';
@@ -136,7 +136,12 @@ async function handleUpdatePendingFile(req: AuthRequest, res: Response) {
 
       if (uploadedFile) {
         console.log('📎 Processing uploaded file:', uploadedFile.originalname);
-        const fileInfo = getFileInfo(uploadedFile);
+        const fileInfo = {
+          filename: uploadedFile.originalname,
+          mimetype: uploadedFile.mimetype,
+          size: uploadedFile.size,
+          path: uploadedFile.path || 'memory-storage'
+        };
         updateFields.verificationFile = fileInfo;
         console.log('✅ New verification file processed:', fileInfo);
       } else {
