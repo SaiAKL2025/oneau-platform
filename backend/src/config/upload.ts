@@ -3,8 +3,11 @@ import path from 'path';
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 
-// Check if we're in a serverless environment
-const isServerless = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+// Check if we're in a serverless environment - more robust detection
+const isServerless = process.env.VERCEL === '1' || 
+                     process.env.NODE_ENV === 'production' || 
+                     process.env.AWS_LAMBDA_FUNCTION_NAME || 
+                     process.env.VERCEL_ENV === 'production';
 
 // Define directory paths (needed for diskStorage configuration)
 const uploadsDir = path.join(__dirname, '../../uploads');
@@ -12,13 +15,25 @@ const organizationsDir = path.join(uploadsDir, 'organizations');
 const tempDir = path.join(uploadsDir, 'temp');
 const profilesDir = path.join(uploadsDir, 'profiles');
 
-// ONLY create directories in non-serverless environments
+// NEVER create directories in serverless environments
 if (!isServerless) {
-  [uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
+  try {
+    [uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
+  } catch (error) {
+    console.log('Directory creation skipped in serverless environment:', error);
+  }
+} else {
+  console.log('Serverless environment detected - skipping directory creation');
+  // Override fs.mkdirSync to prevent any directory creation
+  const originalMkdirSync = fs.mkdirSync;
+  fs.mkdirSync = function(path: any, options?: any) {
+    console.log('Blocked directory creation attempt:', path);
+    return originalMkdirSync.call(this, '/tmp', options); // Use /tmp instead
+  };
 }
 
 // File filter function

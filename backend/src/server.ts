@@ -36,6 +36,9 @@ dotenv.config();
 
 const app = express();
 
+// Trust proxy for Vercel deployment
+app.set('trust proxy', 1);
+
 // Connect to database
 connectDB();
 
