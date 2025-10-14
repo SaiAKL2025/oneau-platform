@@ -12,6 +12,8 @@ import { FirebaseNotificationService } from '../services/firebaseNotificationSer
 import Student from '../models/Student';
 import mongoose from 'mongoose';
 
+const router = express.Router();
+
 // Check if database is connected
 const isDatabaseConnected = () => {
   const isConnected = mongoose.connection.readyState === 1;
@@ -44,8 +46,6 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
 };
 
 // Note: Using cloudinaryUploadMultiple instead of local multer configuration
-
-const router = express.Router();
 
 // Create event with image uploads
 router.post('/', authenticateToken as any, authorizeRoles('organization') as any, cloudinaryUploadMultiple.array('images', 5), async (req: any, res: Response) => {

@@ -18,6 +18,13 @@ const connectDB = async (): Promise<void> => {
 
     // Use the MongoDB URI as provided
     let finalURI = mongoURI;
+    
+    // Ensure proper connection string format
+    if (finalURI.includes('mongodb+srv://')) {
+      // Add additional connection parameters for better reliability
+      const separator = finalURI.includes('?') ? '&' : '?';
+      finalURI = finalURI + `${separator}retryWrites=true&w=majority&authSource=admin&ssl=true`;
+    }
 
     // Configure mongoose options for better connection handling
     const options = {
@@ -32,23 +39,28 @@ const connectDB = async (): Promise<void> => {
       directConnection: false // Use replica set connection
     };
 
-    console.log('Attempting to connect to MongoDB...');
-    
-    // Try connection with retry logic
-    let retries = 3;
-    let conn: any;
-    
-    while (retries > 0) {
-      try {
-        conn = await mongoose.connect(finalURI, options);
-        break;
-      } catch (error: any) {
-        retries--;
-        console.log(`❌ Connection attempt failed, retries left: ${retries}`);
-        if (retries === 0) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-      }
-    }
+        console.log('Attempting to connect to MongoDB...');
+        console.log('🔍 Final URI preview:', finalURI.substring(0, 50) + '...');
+
+        // Try connection with retry logic
+        let retries = 3;
+        let conn: any;
+
+        while (retries > 0) {
+          try {
+            console.log(`🔄 Connection attempt ${4 - retries}/3...`);
+            conn = await mongoose.connect(finalURI, options);
+            console.log('✅ MongoDB connection successful!');
+            break;
+          } catch (error: any) {
+            retries--;
+            console.log(`❌ Connection attempt failed, retries left: ${retries}`);
+            console.log(`❌ Error: ${error.message}`);
+            if (retries === 0) throw error;
+            console.log('⏳ Waiting 2 seconds before retry...');
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+          }
+        }
 
     if (conn) {
       console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
