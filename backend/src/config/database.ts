@@ -9,6 +9,7 @@ const connectDB = async (): Promise<void> => {
     
     console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
     console.log('🔍 MONGODB_URI value:', mongoURI ? 'SET' : 'NOT SET');
+    console.log('🔍 MONGODB_URI preview:', mongoURI ? mongoURI.substring(0, 50) + '...' : 'NOT SET');
     
     if (!mongoURI || mongoURI === 'mongodb://localhost:27017/oneau_platform') {
       console.log('❌ No MongoDB URI provided, skipping database connection');
