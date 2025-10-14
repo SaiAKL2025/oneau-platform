@@ -7,8 +7,11 @@ const connectDB = async (): Promise<void> => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oneau_platform';
     
+    console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
+    console.log('🔍 MONGODB_URI value:', mongoURI ? 'SET' : 'NOT SET');
+    
     if (!mongoURI || mongoURI === 'mongodb://localhost:27017/oneau_platform') {
-      console.log('No MongoDB URI provided, skipping database connection');
+      console.log('❌ No MongoDB URI provided, skipping database connection');
       return;
     }
 
@@ -31,8 +34,10 @@ const connectDB = async (): Promise<void> => {
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`✅ Database: ${conn.connection.name}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Database connection error:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error code:', error.code);
     console.log('⚠️ Continuing without database connection - will use mock data');
     // Don't exit process, just log the error and continue
   }
