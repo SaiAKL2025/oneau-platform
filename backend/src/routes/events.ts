@@ -35,14 +35,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-    files: 5 // Max 5 files
-  }
-});
+// Note: Using cloudinaryUploadMultiple instead of local multer configuration
 
 const router = express.Router();
 
