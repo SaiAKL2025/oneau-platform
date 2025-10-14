@@ -5,12 +5,54 @@ import Student from '../models/Student';
 import User from '../models/User';
 import PendingApproval from '../models/PendingApproval';
 import { FirebaseNotificationService } from '../services/firebaseNotificationService';
+import mongoose from 'mongoose';
 
 const router = express.Router();
+
+// Check if database is connected
+const isDatabaseConnected = () => {
+  return mongoose.connection.readyState === 1;
+};
 
 // Get all organizations
 router.get('/', async (req: any, res: Response) => {
   try {
+    // Check if database is connected
+    if (!isDatabaseConnected()) {
+      console.log('Database not connected, returning mock data for organizations');
+      // Return mock data when database is not connected
+      const mockOrganizations = [
+        {
+          _id: '1',
+          name: 'AUSO (Assumption University Student Organization)',
+          type: 'Student Government',
+          description: 'The main student government organization representing all students at Assumption University.',
+          status: 'active',
+          followers: 1500,
+          profileImage: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: '2',
+          name: 'Computer Science Club',
+          type: 'Academic',
+          description: 'A community for computer science students to share knowledge and collaborate on projects.',
+          status: 'active',
+          followers: 800,
+          profileImage: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        data: mockOrganizations,
+        message: 'Using mock data - database not connected'
+      });
+    }
+
     const organizations = await Organization.find({});
     
     // Organizations now have their own profile images
