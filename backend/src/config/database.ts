@@ -22,29 +22,9 @@ const connectDB = async (): Promise<void> => {
     // Use the MongoDB URI as provided
     let finalURI = mongoURI;
     
-    // Ensure proper connection string format
-    if (finalURI.includes('mongodb+srv://')) {
-      // Only add parameters if they don't already exist
-      const separator = finalURI.includes('?') ? '&' : '?';
-      let additionalParams = '';
-      
-      if (!finalURI.includes('retryWrites=')) {
-        additionalParams += 'retryWrites=true';
-      }
-      if (!finalURI.includes('w=')) {
-        additionalParams += additionalParams ? '&w=majority' : 'w=majority';
-      }
-      if (!finalURI.includes('authSource=')) {
-        additionalParams += additionalParams ? '&authSource=admin' : 'authSource=admin';
-      }
-      if (!finalURI.includes('ssl=')) {
-        additionalParams += additionalParams ? '&ssl=true' : 'ssl=true';
-      }
-      
-      if (additionalParams) {
-        finalURI = finalURI + separator + additionalParams;
-      }
-    }
+    // Use the MongoDB URI as provided without modification
+    // The URI already contains all necessary parameters
+    console.log('🔍 Using MongoDB URI as provided (no modifications needed)');
 
     // Configure mongoose options for better connection handling
     const options = {
