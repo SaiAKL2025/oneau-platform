@@ -100,8 +100,14 @@ const corsOptions = {
     }
     
     // Allow all Vercel domains (for development and production)
-    if (origin.includes('vercel.app') || origin.includes('localhost')) {
+    if (origin.includes('vercel.app') || origin.includes('localhost') || origin.includes('vercel')) {
       console.log('✅ CORS: Allowing Vercel/localhost origin:', origin);
+      return callback(null, true);
+    }
+    
+    // Allow all origins that contain 'oneau-platform' (your frontend)
+    if (origin.includes('oneau-platform')) {
+      console.log('✅ CORS: Allowing oneau-platform origin:', origin);
       return callback(null, true);
     }
     
