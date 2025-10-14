@@ -400,7 +400,7 @@ router.get('/', async (req: any, res: Response) => {
       success: true,
       events
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching events:', error);
     console.error('Error details:', error.message);
     console.error('Error stack:', error.stack);
