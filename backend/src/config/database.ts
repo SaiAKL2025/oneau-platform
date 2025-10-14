@@ -4,41 +4,37 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectDB = async (): Promise<void> => {
-  // Skip database connection in serverless environments
-  if (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV) {
-    console.log('Skipping database connection in serverless environment');
-    return;
-  }
-
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oneau_platform';
     
+    if (!mongoURI || mongoURI === 'mongodb://localhost:27017/oneau_platform') {
+      console.log('No MongoDB URI provided, skipping database connection');
+      return;
+    }
+
     // Use the MongoDB URI as provided
     let finalURI = mongoURI;
 
     // Configure mongoose options for better connection handling
     const options = {
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      serverSelectionTimeoutMS: 10000, // Keep trying to send operations for 10 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      minPoolSize: 5, // Maintain a minimum of 5 socket connections
+      connectTimeoutMS: 15000, // Give up initial connection after 15 seconds
+      maxPoolSize: 5, // Maintain up to 5 socket connections
+      minPoolSize: 1, // Maintain a minimum of 1 socket connection
       maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
       bufferCommands: false // Disable mongoose buffering
     };
 
+    console.log('Attempting to connect to MongoDB...');
     const conn = await mongoose.connect(finalURI, options);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    console.log(`Database: ${conn.connection.name}`);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ Database: ${conn.connection.name}`);
   } catch (error) {
-    console.error('Database connection error:', error);
-    // Don't exit process in serverless environment, just log the error
-    if (process.env.VERCEL === '1') {
-      console.log('Running in serverless environment - continuing without database connection');
-    } else {
-      process.exit(1);
-    }
+    console.error('❌ Database connection error:', error);
+    console.log('⚠️ Continuing without database connection - will use mock data');
+    // Don't exit process, just log the error and continue
   }
 };
 
