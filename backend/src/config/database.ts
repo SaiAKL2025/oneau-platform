@@ -16,6 +16,9 @@ const connectDB = async (): Promise<void> => {
       return;
     }
 
+    // TEMPORARY: Force connection attempt even if it might fail
+    console.log('🔄 Forcing MongoDB connection attempt...');
+
     // Use the MongoDB URI as provided
     let finalURI = mongoURI;
     
