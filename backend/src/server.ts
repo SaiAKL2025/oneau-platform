@@ -252,6 +252,10 @@ app.use('/api/notifications', notificationRoutes);
 // app.use('/api/brevo', brevoEmailRoutes);
 // app.use('/api/email-hybrid', hybridEmailRoutes);
 
+// Public routes without /api prefix (for frontend compatibility)
+app.use('/organizations', organizationRoutes);
+app.use('/public', publicRoutes); // For /public/organizations/popular
+
 // Static files for uploads with CORS headers
 app.use('/uploads', cors({
   origin: true, // Allow all origins for static files
