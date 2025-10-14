@@ -6,13 +6,14 @@ import { Request, Response, NextFunction } from 'express';
 // Check if we're in a serverless environment
 const isServerless = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
 
+// Define directory paths (needed for diskStorage configuration)
+const uploadsDir = path.join(__dirname, '../../uploads');
+const organizationsDir = path.join(uploadsDir, 'organizations');
+const tempDir = path.join(uploadsDir, 'temp');
+const profilesDir = path.join(uploadsDir, 'profiles');
+
 // Only create uploads directory if not in serverless environment
 if (!isServerless) {
-  const uploadsDir = path.join(__dirname, '../../uploads');
-  const organizationsDir = path.join(uploadsDir, 'organizations');
-  const tempDir = path.join(uploadsDir, 'temp');
-  const profilesDir = path.join(uploadsDir, 'profiles');
-
   [uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
