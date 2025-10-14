@@ -4,6 +4,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectDB = async (): Promise<void> => {
+  // Skip database connection in serverless environments
+  if (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production') {
+    console.log('Skipping database connection in serverless environment');
+    return;
+  }
+
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oneau_platform';
     
