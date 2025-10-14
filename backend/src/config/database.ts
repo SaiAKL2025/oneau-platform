@@ -21,21 +21,39 @@ const connectDB = async (): Promise<void> => {
 
     // Configure mongoose options for better connection handling
     const options = {
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 30000, // Close sockets after 30 seconds of inactivity
-      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
+      serverSelectionTimeoutMS: 3000, // Keep trying to send operations for 3 seconds
+      socketTimeoutMS: 20000, // Close sockets after 20 seconds of inactivity
+      connectTimeoutMS: 5000, // Give up initial connection after 5 seconds
       maxPoolSize: 1, // Maintain only 1 socket connection for serverless
       minPoolSize: 0, // No minimum connections for serverless
-      maxIdleTimeMS: 10000, // Close connections after 10 seconds of inactivity
+      maxIdleTimeMS: 5000, // Close connections after 5 seconds of inactivity
       bufferCommands: false, // Disable mongoose buffering
-      retryWrites: true // Enable retryable writes
+      retryWrites: true, // Enable retryable writes
+      directConnection: false // Use replica set connection
     };
 
     console.log('Attempting to connect to MongoDB...');
-    const conn = await mongoose.connect(finalURI, options);
+    
+    // Try connection with retry logic
+    let retries = 3;
+    let conn: any;
+    
+    while (retries > 0) {
+      try {
+        conn = await mongoose.connect(finalURI, options);
+        break;
+      } catch (error: any) {
+        retries--;
+        console.log(`❌ Connection attempt failed, retries left: ${retries}`);
+        if (retries === 0) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      }
+    }
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`✅ Database: ${conn.connection.name}`);
+    if (conn) {
+      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+      console.log(`✅ Database: ${conn.connection.name}`);
+    }
   } catch (error: any) {
     console.error('❌ Database connection error:', error);
     console.error('❌ Error message:', error.message);
