@@ -20,13 +20,14 @@ const connectDB = async (): Promise<void> => {
 
     // Configure mongoose options for better connection handling
     const options = {
-      serverSelectionTimeoutMS: 10000, // Keep trying to send operations for 10 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      connectTimeoutMS: 15000, // Give up initial connection after 15 seconds
-      maxPoolSize: 5, // Maintain up to 5 socket connections
-      minPoolSize: 1, // Maintain a minimum of 1 socket connection
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      bufferCommands: false // Disable mongoose buffering
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 30000, // Close sockets after 30 seconds of inactivity
+      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
+      maxPoolSize: 1, // Maintain only 1 socket connection for serverless
+      minPoolSize: 0, // No minimum connections for serverless
+      maxIdleTimeMS: 10000, // Close connections after 10 seconds of inactivity
+      bufferCommands: false, // Disable mongoose buffering
+      retryWrites: true // Enable retryable writes
     };
 
     console.log('Attempting to connect to MongoDB...');
