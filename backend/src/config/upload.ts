@@ -3,17 +3,22 @@ import path from 'path';
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../../uploads');
-const organizationsDir = path.join(uploadsDir, 'organizations');
-const tempDir = path.join(uploadsDir, 'temp');
-const profilesDir = path.join(uploadsDir, 'profiles');
+// Check if we're in a serverless environment
+const isServerless = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
 
-[uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
+// Only create uploads directory if not in serverless environment
+if (!isServerless) {
+  const uploadsDir = path.join(__dirname, '../../uploads');
+  const organizationsDir = path.join(uploadsDir, 'organizations');
+  const tempDir = path.join(uploadsDir, 'temp');
+  const profilesDir = path.join(uploadsDir, 'profiles');
+
+  [uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+}
 
 // File filter function
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
@@ -58,38 +63,40 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-    // Store organization files in their own directory
-    if (req.body.orgId) {
-      const orgDir = path.join(organizationsDir, req.body.orgId.toString());
-      if (!fs.existsSync(orgDir)) {
-        fs.mkdirSync(orgDir, { recursive: true });
+// Storage configuration - use memory storage for serverless
+const storage = isServerless 
+  ? multer.memoryStorage() // Use memory storage in serverless
+  : multer.diskStorage({
+      destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+        // Store organization files in their own directory
+        if (req.body.orgId) {
+          const orgDir = path.join(organizationsDir, req.body.orgId.toString());
+          if (!fs.existsSync(orgDir)) {
+            fs.mkdirSync(orgDir, { recursive: true });
+          }
+          cb(null, orgDir);
+        } else if (req.path && req.path.includes('/single')) {
+          // For single file uploads (like profile pictures), use profiles directory
+          cb(null, profilesDir);
+        } else {
+          cb(null, tempDir);
+        }
+      },
+      filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+        // Generate unique filename with timestamp
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const extension = path.extname(file.originalname).toLowerCase();
+
+        // Sanitize the basename to remove special characters and spaces
+        const basename = path.basename(file.originalname, path.extname(file.originalname))
+          .replace(/[^a-zA-Z0-9]/g, '-') // Replace non-alphanumeric with hyphens
+          .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+          .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+
+        const sanitizedFilename = `${basename}-${uniqueSuffix}${extension}`;
+        cb(null, sanitizedFilename);
       }
-      cb(null, orgDir);
-    } else if (req.path && req.path.includes('/single')) {
-      // For single file uploads (like profile pictures), use profiles directory
-      cb(null, profilesDir);
-    } else {
-      cb(null, tempDir);
-    }
-  },
-  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname).toLowerCase();
-
-    // Sanitize the basename to remove special characters and spaces
-    const basename = path.basename(file.originalname, path.extname(file.originalname))
-      .replace(/[^a-zA-Z0-9]/g, '-') // Replace non-alphanumeric with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
-
-    const sanitizedFilename = `${basename}-${uniqueSuffix}${extension}`;
-    cb(null, sanitizedFilename);
-  }
-});
+    });
 
 // Custom multer error handler
 const multerErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
@@ -151,7 +158,6 @@ export const upload = multer({
     files: 1 // Maximum 1 file per request for single upload
   }
 });
-
 
 // Export the error handler
 export { multerErrorHandler };
