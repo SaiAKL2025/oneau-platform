@@ -151,6 +151,8 @@ app.use(performanceLogger);
 // Passport middleware
 app.use(passport.initialize());
 
+// Add this line after creating the Express app
+app.set('trust proxy', 1); // Trust first proxy (Vercel)
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -12,7 +12,7 @@ const organizationsDir = path.join(uploadsDir, 'organizations');
 const tempDir = path.join(uploadsDir, 'temp');
 const profilesDir = path.join(uploadsDir, 'profiles');
 
-// Only create uploads directory if not in serverless environment
+// ONLY create directories in non-serverless environments
 if (!isServerless) {
   [uploadsDir, organizationsDir, tempDir, profilesDir].forEach(dir => {
     if (!fs.existsSync(dir)) {
@@ -64,7 +64,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-// Storage configuration - use memory storage for serverless
+// Storage configuration - ALWAYS use memory storage in serverless
 const storage = isServerless 
   ? multer.memoryStorage() // Use memory storage in serverless
   : multer.diskStorage({
