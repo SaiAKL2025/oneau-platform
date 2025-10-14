@@ -5,7 +5,7 @@ dotenv.config();
 
 const connectDB = async (): Promise<void> => {
   // Skip database connection in serverless environments
-  if (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production') {
+  if (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV) {
     console.log('Skipping database connection in serverless environment');
     return;
   }
