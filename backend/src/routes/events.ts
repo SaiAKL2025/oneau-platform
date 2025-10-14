@@ -14,7 +14,9 @@ import mongoose from 'mongoose';
 
 // Check if database is connected
 const isDatabaseConnected = () => {
-  return mongoose.connection.readyState === 1;
+  const isConnected = mongoose.connection.readyState === 1;
+  console.log('Database connection state:', mongoose.connection.readyState, 'Connected:', isConnected);
+  return isConnected;
 };
 
 // Configure multer for file uploads
@@ -339,6 +341,7 @@ router.delete('/:id', authenticateToken as any, authorizeRoles('organization') a
 // Get all events
 router.get('/', async (req: any, res: Response) => {
   try {
+    console.log('Events route called, checking database connection...');
     // Check if database is connected
     if (!isDatabaseConnected()) {
       console.log('Database not connected, returning mock data for events');
@@ -399,9 +402,12 @@ router.get('/', async (req: any, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching events:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch events'
+      message: 'Failed to fetch events',
+      error: error.message
     });
   }
 });
