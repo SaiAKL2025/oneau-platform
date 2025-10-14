@@ -10,6 +10,12 @@ import { cloudinaryUpload, cloudinaryUploadMultiple, getCloudinaryFileInfo } fro
 import { ActivityService } from '../services/activityService';
 import { FirebaseNotificationService } from '../services/firebaseNotificationService';
 import Student from '../models/Student';
+import mongoose from 'mongoose';
+
+// Check if database is connected
+const isDatabaseConnected = () => {
+  return mongoose.connection.readyState === 1;
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -333,12 +339,66 @@ router.delete('/:id', authenticateToken as any, authorizeRoles('organization') a
 // Get all events
 router.get('/', async (req: any, res: Response) => {
   try {
+    // Check if database is connected
+    if (!isDatabaseConnected()) {
+      console.log('Database not connected, returning mock data for events');
+      // Return mock data when database is not connected
+      const mockEvents = [
+        {
+          _id: '1',
+          title: 'Welcome to OneAU Platform',
+          description: 'Join us for the official launch of the OneAU student platform!',
+          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          location: 'Main Campus Auditorium',
+          type: 'General',
+          status: 'active',
+          attendees: 150,
+          maxAttendees: 200,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: '2',
+          title: 'Computer Science Workshop',
+          description: 'Learn the latest programming techniques and best practices.',
+          date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+          location: 'Computer Lab 101',
+          type: 'Workshop',
+          status: 'active',
+          attendees: 45,
+          maxAttendees: 50,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: '3',
+          title: 'Environmental Awareness Day',
+          description: 'Join us in promoting environmental sustainability on campus.',
+          date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
+          location: 'Central Park',
+          type: 'Community Service',
+          status: 'active',
+          attendees: 80,
+          maxAttendees: 100,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        events: mockEvents,
+        message: 'Using mock data - database not connected'
+      });
+    }
+
     const events = await Event.find({});
     res.json({
       success: true,
       events
     });
   } catch (error) {
+    console.error('Error fetching events:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch events'
