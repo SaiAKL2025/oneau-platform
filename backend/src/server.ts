@@ -157,6 +157,26 @@ app.use(passport.initialize());
 // Add this line after creating the Express app
 app.set('trust proxy', 1); // Trust first proxy (Vercel)
 
+// Root endpoint - API information
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'OneAU Backend API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      users: '/api/users',
+      students: '/api/students',
+      organizations: '/api/organizations',
+      events: '/api/events',
+      admin: '/api/admin',
+      uploads: '/api/uploads'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   console.log('🔍 Health check request received from:', req.ip, req.headers.origin);
@@ -165,6 +185,15 @@ app.get('/health', (req, res) => {
     message: 'OneAU Backend API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Favicon endpoints - return 204 No Content
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
+app.get('/favicon.png', (req, res) => {
+  res.status(204).end();
 });
 
 
