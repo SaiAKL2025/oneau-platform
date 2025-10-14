@@ -88,7 +88,7 @@ app.use(morgan('combined', {
   }
 }));
 
-// CORS configuration - more flexible for development and production
+// CORS configuration - very permissive for development and production
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     console.log('🔍 CORS request from origin:', origin);
@@ -99,6 +99,12 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Allow ALL origins for now (very permissive)
+    console.log('✅ CORS: Allowing all origins for development:', origin);
+    return callback(null, true);
+    
+    // Commented out restrictive checks for now
+    /*
     // Allow all Vercel domains (for development and production)
     if (origin.includes('vercel.app') || origin.includes('localhost') || origin.includes('vercel')) {
       console.log('✅ CORS: Allowing Vercel/localhost origin:', origin);
@@ -128,6 +134,7 @@ const corsOptions = {
       console.log('🚫 CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
+    */
   },
   credentials: true,
   optionsSuccessStatus: 200,
@@ -145,6 +152,23 @@ const corsOptions = {
   maxAge: 86400 // 24 hours
 };
 app.use(cors(corsOptions));
+
+// Additional CORS middleware as fallback
+app.use((req, res, next) => {
+  // Set CORS headers manually as fallback
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
