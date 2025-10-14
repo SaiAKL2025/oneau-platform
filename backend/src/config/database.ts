@@ -25,6 +25,19 @@ const connectDB = async (): Promise<void> => {
     // Use the MongoDB URI as provided without modification
     // The URI already contains all necessary parameters
     console.log('🔍 Using MongoDB URI as provided (no modifications needed)');
+    console.log('🔍 Full URI length:', finalURI.length);
+    console.log('🔍 URI contains retryWrites:', finalURI.includes('retryWrites'));
+    console.log('🔍 URI contains w=', finalURI.includes('w='));
+    console.log('🔍 URI contains authSource=', finalURI.includes('authSource'));
+    
+    // Check for duplicate retryWrites
+    const retryWritesMatches = finalURI.match(/retryWrites=/g);
+    if (retryWritesMatches && retryWritesMatches.length > 1) {
+      console.log('❌ DUPLICATE retryWrites found:', retryWritesMatches.length, 'times');
+      console.log('❌ URI preview:', finalURI.substring(0, 100) + '...');
+    } else {
+      console.log('✅ No duplicate retryWrites found');
+    }
 
     // Configure mongoose options for better connection handling
     const options = {
