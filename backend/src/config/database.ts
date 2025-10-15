@@ -22,27 +22,35 @@ const connectDB = async (): Promise<void> => {
       console.log('🔧 Added authSource=admin to URI');
     }
 
-    // Configure mongoose options for better connection handling
+    // Configure mongoose options for serverless environment
     const options = {
-      serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
-      socketTimeoutMS: 30000, // Increased to 30 seconds
-      connectTimeoutMS: 10000, // Increased to 10 seconds
-      maxPoolSize: 1, // Maintain only 1 socket connection for serverless
-      minPoolSize: 0, // No minimum connections for serverless
-      maxIdleTimeMS: 5000, // Close connections after 5 seconds of inactivity
+      serverSelectionTimeoutMS: 5000, // 5 seconds timeout
+      socketTimeoutMS: 10000, // 10 seconds socket timeout
+      connectTimeoutMS: 5000, // 5 seconds connection timeout
+      maxPoolSize: 1, // Single connection for serverless
+      minPoolSize: 0, // No minimum connections
+      maxIdleTimeMS: 30000, // 30 seconds idle timeout
       bufferCommands: false, // Disable mongoose buffering
       retryWrites: true, // Enable retryable writes
-      directConnection: false // Use replica set connection
+      directConnection: false, // Use replica set connection
+      heartbeatFrequencyMS: 10000 // 10 seconds heartbeat
     };
 
-        // Try connection with retry logic
+        // Try connection with timeout and retry logic
         let retries = 3;
         let conn: any;
 
         while (retries > 0) {
           try {
             console.log(`🔄 MongoDB connection attempt ${4 - retries}/3...`);
-            conn = await mongoose.connect(finalURI, options);
+            
+            // Add timeout wrapper to prevent hanging
+            const connectionPromise = mongoose.connect(finalURI, options);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Connection timeout after 8 seconds')), 8000)
+            );
+            
+            conn = await Promise.race([connectionPromise, timeoutPromise]);
             console.log('✅ MongoDB connection successful!');
             break;
           } catch (error: any) {

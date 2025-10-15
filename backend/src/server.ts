@@ -40,7 +40,10 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Connect to database
-connectDB();
+connectDB().catch((error) => {
+  console.error('❌ Failed to connect to database:', error);
+  console.log('⚠️ Server will continue with mock data');
+});
 
 // Security middleware
 app.use(helmet({
