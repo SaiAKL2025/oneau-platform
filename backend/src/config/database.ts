@@ -48,9 +48,9 @@ const connectDB = async (): Promise<void> => {
 
     // Configure mongoose options for better connection handling
     const options = {
-      serverSelectionTimeoutMS: 3000, // Keep trying to send operations for 3 seconds
-      socketTimeoutMS: 20000, // Close sockets after 20 seconds of inactivity
-      connectTimeoutMS: 5000, // Give up initial connection after 5 seconds
+      serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
+      socketTimeoutMS: 30000, // Increased to 30 seconds
+      connectTimeoutMS: 10000, // Increased to 10 seconds
       maxPoolSize: 1, // Maintain only 1 socket connection for serverless
       minPoolSize: 0, // No minimum connections for serverless
       maxIdleTimeMS: 5000, // Close connections after 5 seconds of inactivity
@@ -69,13 +69,20 @@ const connectDB = async (): Promise<void> => {
         while (retries > 0) {
           try {
             console.log(`🔄 Connection attempt ${4 - retries}/3...`);
+            console.log(`🔍 Connecting with URI: ${finalURI.substring(0, 50)}...`);
             conn = await mongoose.connect(finalURI, options);
             console.log('✅ MongoDB connection successful!');
             break;
           } catch (error: any) {
             retries--;
             console.log(`❌ Connection attempt failed, retries left: ${retries}`);
-            console.log(`❌ Error: ${error.message}`);
+            console.log(`❌ Error type: ${error.constructor.name}`);
+            console.log(`❌ Error message: ${error.message}`);
+            console.log(`❌ Error code: ${error.code}`);
+            console.log(`❌ Error name: ${error.name}`);
+            if (error.reason) {
+              console.log(`❌ Error reason: ${JSON.stringify(error.reason)}`);
+            }
             if (retries === 0) throw error;
             console.log('⏳ Waiting 2 seconds before retry...');
             await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
