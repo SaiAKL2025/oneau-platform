@@ -15,6 +15,7 @@ const connectDB = async (): Promise<void> => {
 
     console.log('🔄 Attempting MongoDB connection...');
     let finalURI = mongoURI;
+    console.log('🔍 Final URI (masked):', finalURI.replace(/:([^@]+)@/, ':*****@'));
 
     // Add authSource=admin if missing (common issue with MongoDB Atlas)
     if (!finalURI.includes('authSource=')) {
