@@ -7,37 +7,13 @@ const connectDB = async (): Promise<void> => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oneau_platform';
     
-    console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
-    console.log('🔍 MONGODB_URI value:', mongoURI ? 'SET' : 'NOT SET');
-    console.log('🔍 MONGODB_URI preview:', mongoURI ? mongoURI.substring(0, 50) + '...' : 'NOT SET');
-    
     if (!mongoURI || mongoURI === 'mongodb://localhost:27017/oneau_platform') {
       console.log('❌ No MongoDB URI provided, skipping database connection');
       return;
     }
 
-    // TEMPORARY: Force connection attempt even if it might fail
-    console.log('🔄 Forcing MongoDB connection attempt...');
-
-    // Use the MongoDB URI as provided
+    console.log('🔄 Attempting MongoDB connection...');
     let finalURI = mongoURI;
-    
-    // Use the MongoDB URI as provided without modification
-    // The URI already contains all necessary parameters
-    console.log('🔍 Using MongoDB URI as provided (no modifications needed)');
-    console.log('🔍 Full URI length:', finalURI.length);
-    console.log('🔍 URI contains retryWrites:', finalURI.includes('retryWrites'));
-    console.log('🔍 URI contains w=', finalURI.includes('w='));
-    console.log('🔍 URI contains authSource=', finalURI.includes('authSource'));
-    
-    // Check for duplicate retryWrites
-    const retryWritesMatches = finalURI.match(/retryWrites=/g);
-    if (retryWritesMatches && retryWritesMatches.length > 1) {
-      console.log('❌ DUPLICATE retryWrites found:', retryWritesMatches.length, 'times');
-      console.log('❌ URI preview:', finalURI.substring(0, 100) + '...');
-    } else {
-      console.log('✅ No duplicate retryWrites found');
-    }
 
     // Add authSource=admin if missing (common issue with MongoDB Atlas)
     if (!finalURI.includes('authSource=')) {
@@ -59,33 +35,26 @@ const connectDB = async (): Promise<void> => {
       directConnection: false // Use replica set connection
     };
 
-        console.log('Attempting to connect to MongoDB...');
-        console.log('🔍 Final URI preview:', finalURI.substring(0, 50) + '...');
-
         // Try connection with retry logic
         let retries = 3;
         let conn: any;
 
         while (retries > 0) {
           try {
-            console.log(`🔄 Connection attempt ${4 - retries}/3...`);
-            console.log(`🔍 Connecting with URI: ${finalURI.substring(0, 50)}...`);
+            console.log(`🔄 MongoDB connection attempt ${4 - retries}/3...`);
             conn = await mongoose.connect(finalURI, options);
             console.log('✅ MongoDB connection successful!');
             break;
           } catch (error: any) {
             retries--;
-            console.log(`❌ Connection attempt failed, retries left: ${retries}`);
-            console.log(`❌ Error type: ${error.constructor.name}`);
-            console.log(`❌ Error message: ${error.message}`);
-            console.log(`❌ Error code: ${error.code}`);
-            console.log(`❌ Error name: ${error.name}`);
-            if (error.reason) {
-              console.log(`❌ Error reason: ${JSON.stringify(error.reason)}`);
+            console.log(`❌ MongoDB connection failed (${retries} retries left)`);
+            console.log(`❌ Error: ${error.message}`);
+            if (retries === 0) {
+              console.log(`❌ Final error details: ${error.constructor.name} - ${error.message}`);
+              throw error;
             }
-            if (retries === 0) throw error;
-            console.log('⏳ Waiting 2 seconds before retry...');
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+            console.log('⏳ Retrying in 2 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         }
 
