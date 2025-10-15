@@ -39,6 +39,13 @@ const connectDB = async (): Promise<void> => {
       console.log('✅ No duplicate retryWrites found');
     }
 
+    // Add authSource=admin if missing (common issue with MongoDB Atlas)
+    if (!finalURI.includes('authSource=')) {
+      const separator = finalURI.includes('?') ? '&' : '?';
+      finalURI = finalURI + separator + 'authSource=admin';
+      console.log('🔧 Added authSource=admin to URI');
+    }
+
     // Configure mongoose options for better connection handling
     const options = {
       serverSelectionTimeoutMS: 3000, // Keep trying to send operations for 3 seconds
