@@ -5,6 +5,7 @@ dotenv.config();
 
 const connectDB = async (): Promise<void> => {
   try {
+    console.log('🚀 NEW DATABASE CONNECTION CODE LOADED');
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oneau_platform';
     
     if (!mongoURI || mongoURI === 'mongodb://localhost:27017/oneau_platform') {
